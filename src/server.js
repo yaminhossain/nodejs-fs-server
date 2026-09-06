@@ -12,7 +12,7 @@ const server = http.createServer((req, res) => {
   }
 
   // ========== Post Request =====
-  else if (req.url === "/post" && req.method === "POST") {
+  else if (req.url === "/todo" && req.method === "POST") {
     let apiData = "";
     req.on("data", (chunk) => {
       apiData += chunk;
