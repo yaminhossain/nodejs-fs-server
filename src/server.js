@@ -11,7 +11,50 @@ const server = http.createServer((req, res) => {
     res.end("TODO application is running");
   }
 
+  // ========== Post Request =====
+  else if (req.url === "/post" && req.method === "POST") {
+    let apiData = "";
+    req.on("data", (chunk) => {
+      apiData += chunk;
+    });
 
+    req.on("end", () => {
+      // read file from the storage
+      const apiDataObj = JSON.parse(apiData);
+      fs.readFile(savedLocation, { encoding: "utf8" }, (err, data) => {
+        if (err || !data) {
+          fs.writeFile(
+            savedLocation,
+            JSON.stringify([apiDataObj], null, 2),
+            (err) => {
+              console.log("Error Writing File", err);
+            },
+          );
+        } else {
+          const parsedData = JSON.parse(data);
+          parsedData.push(apiDataObj);
+          fs.writeFile(
+            savedLocation,
+            JSON.stringify(parsedData, null, 2),
+            (err) => {
+              console.log("Error Writing File", err);
+            },
+          );
+        }
+      });
+      res.writeHead(200, "OK", { "content-type": "application/json" });
+      res.end(
+        JSON.stringify(
+          {
+            status: "OK",
+            data: apiDataObj,
+          },
+          null,
+          2,
+        ),
+      );
+    });
+  }
 });
 
 server.listen(5000, "127.0.0.1", () => {
