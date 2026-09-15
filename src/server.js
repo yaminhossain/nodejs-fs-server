@@ -6,6 +6,9 @@ const parentDir = path.dirname(__dirname);
 const savedLocation = path.join(parentDir, "data", "todos.json");
 
 const server = http.createServer((req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const urlParts = url.pathname.split("/");
+
   // ========== Server Init ==========
   if (req.url === "/" && req.method === "GET") {
     res.end("TODO application is running");
@@ -117,6 +120,34 @@ const server = http.createServer((req, res) => {
           data: parsedObj,
         }),
       );
+    });
+  }
+
+  // ========== Get a single ToDo using route params ============
+  // "/todo/id"
+  else if (req.method === "GET" && urlParts[1] === "todos" && urlParts[2]) {
+    const id = urlParts[2];
+    fs.readFile(savedLocation, { encoding: "utf8" }, (err, data) => {
+      console.log("Reading Data");
+      if (err && !data) {
+        res.writeHead(404, "Not Found", {
+          "content-type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            status: "error",
+            message: "no data found",
+          }),
+        );
+        return;
+      }
+
+      const parsedObj = JSON.parse(data)
+      console.log(parsedObj)
+      const matchedTodo = parsedObj.find(obj => obj.id === id)
+      console.log(matchedTodo)
+
+      res.end()
     });
   }
 });
