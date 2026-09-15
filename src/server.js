@@ -11,7 +11,7 @@ const server = http.createServer((req, res) => {
     res.end("TODO application is running");
   }
 
-  // ========== Post Request =====
+  // ========== Post a Single todo =====
   else if (req.url === "/todo" && req.method === "POST") {
     let apiData = "";
     req.on("data", (chunk) => {
@@ -85,6 +85,38 @@ const server = http.createServer((req, res) => {
           }
         });
       });
+    });
+  }
+
+  // =========== Get all todos =========
+  else if (req.url === "/todos" && req.method === "GET") {
+    fs.readFile(savedLocation, { encoding: "utf8" }, (err, data) => {
+      if (err && !data) {
+        res.writeHead(500, "Internal Server Error", {
+          "content-type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            status: "error",
+            message:
+              "An unexpected error occurred while fetching your todos. Please try again later.",
+          }),
+        );
+
+        return;
+      }
+
+      const parsedObj = JSON.parse(data);
+      res.writeHead(200, "OK", {
+        "content-type": "application/json",
+      });
+
+      res.end(
+        JSON.stringify({
+          status: "OK",
+          data: parsedObj,
+        }),
+      );
     });
   }
 });
