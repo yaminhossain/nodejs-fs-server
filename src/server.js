@@ -4,6 +4,7 @@ const addNewTodO = require("./controllers/addNewToDo");
 const getAllTodos = require("./controllers/getAllTodos");
 const getSingleTodo = require("./controllers/getSingleTodo");
 const deleteTodo = require("./controllers/deleteTodo");
+const updateTodo = require("./controllers/updateTodo");
 
 const parentDir = path.dirname(__dirname);
 const savedLocation = path.join(parentDir, "data", "todos.json");
@@ -34,10 +35,21 @@ const server = http.createServer((req, res) => {
   }
 
   // ============== Delete a single Todo using search params==============
-  else if (req.url = "/todos" && req.method === "DELETE" && url.searchParams) {
+  else if (
+    req.url === "/todos" &&
+    req.method === "DELETE" &&
+    url.searchParams
+  ) {
     const id = url.searchParams.get("id");
     deleteTodo(req, res, id, savedLocation);
   }
+
+  // ============ PUT Operation: Update single todo data ==============
+  else if (req.url === `/todos/${urlParts[2]}` && req.method === "PATCH") {
+    updateTodo(req, res, urlParts[2], savedLocation);
+  }
+
+  // res.end();
 });
 
 server.listen(5000, "127.0.0.1", () => {
