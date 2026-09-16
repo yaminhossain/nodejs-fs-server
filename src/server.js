@@ -34,7 +34,7 @@ const server = http.createServer((req, res) => {
   }
 
   // ============== Delete a single Todo using search params==============
-  else if (req.method === "DELETE" && url.searchParams) {
+  else if (req.url = "/todos" && req.method === "DELETE" && url.searchParams) {
     const id = url.searchParams.get("id");
     deleteTodo(req, res, id, savedLocation);
   }

@@ -9,11 +9,9 @@ const getAllTodos = (req, res, savedLocation) => {
       res.end(
         JSON.stringify({
           status: "error",
-          message:
-            "An unexpected error occurred while fetching your todos. Please try again later.",
+          data: [],
         }),
       );
-
       return;
     }
 
