@@ -2,13 +2,27 @@
   {
     "id": 1,
     "title": "First Task",
-    "description": "reach home wtihin 9",
-    "priority": "low"
+    "description": "reach home wtihin 7",
+    "priority": "high"
   },
   {
     "id": 2,
     "title": "Second Task",
     "description": "Finishing Node.js Server as soon as possible ",
     "priority": "low"
+  },
+  {
+    "description": "reach home wtihin 9",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "description": "Learning Frontend",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "description": "Learning Frontend",
+    "id": "4"
   }
 ]
