@@ -2,27 +2,31 @@
   {
     "id": 1,
     "title": "First Task",
-    "description": "reach home wtihin 7",
-    "priority": "high"
+    "description": "Learning Frontend faster",
+    "priority": "medium",
+    "Keys": "React, Node.js",
+    "isActive": true
   },
   {
     "id": 2,
     "title": "Second Task",
-    "description": "Finishing Node.js Server as soon as possible ",
-    "priority": "low"
-  },
-  {
-    "description": "reach home wtihin 9",
+    "description": "Learning Backend",
     "priority": "high",
-    "id": "3"
+    "isActive": true
   },
   {
-    "description": "Learning Frontend",
+    "id": 3,
+    "description": "Learning Backend",
     "priority": "high",
-    "id": "5"
+    "isActive": true
   },
   {
-    "description": "Learning Frontend",
-    "id": "4"
+    "id": 4,
+    "title": "Learning full stack",
+    "keys": "express.js, node.js",
+    "isActive": false
+  },
+  {
+    "id": 5
   }
 ]

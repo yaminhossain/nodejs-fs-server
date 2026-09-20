@@ -12,6 +12,7 @@ const savedLocation = path.join(parentDir, "data", "todos.json");
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const urlParts = url.pathname.split("/");
+  console.log("======================== Server's been hit =====================")
 
   // ========== Server Init ==========
   if (req.url === "/" && req.method === "GET") {

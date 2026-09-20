@@ -1,8 +1,6 @@
 const fs = require("fs");
 
 const updateTodo = (req, res, id, savedLocation) => {
-  console.log(" ############ Update Function Hit ############ ");
-
   let data = "";
   // Reading Data from request body
   req.on("data", (chunk) => {
@@ -10,135 +8,161 @@ const updateTodo = (req, res, id, savedLocation) => {
   });
 
   req.on("end", () => {
-    const parsedApiData = JSON.parse(data);
-    const { set = {}, upsert = false } = parsedApiData;
-    const sanitized = isSanitized(set, upsert);
+    let parsedApiData;
 
-    console.log("Is Set and Upsert sanitized:::::::", sanitized);
-    // set object must contain some properties
-    if (Object.keys(set).length === 0) {
-      res.writeHead(405, "Not Allowed", {
+    try {
+      parsedApiData = JSON.parse(data);
+    } catch (error) {
+      res.writeHead(400, "Bad Request", {
+        "content-type": "application/json",
+      });
+
+      res.end(
+        JSON.stringify({
+          status: "error",
+          message: "Invalid JSON format",
+        }),
+      );
+
+      return;
+    }
+
+    const { set = {}, upsert = false } = parsedApiData;
+
+    const isUpcomingDataValid = isValidUpdateInput(set, upsert);
+
+    if (!isUpcomingDataValid) {
+      res.writeHead(400, "Bad Request", {
+        "content-type": "application/json",
+      });
+
+      res.end(
+        JSON.stringify({
+          status: "error",
+          message: "Invalid update data",
+        }),
+      );
+
+      return;
+    }
+
+    fs.readFile(savedLocation, { encoding: "utf8" }, (err, data) => {
+      if (err) {
+        res.writeHead(500, "Internal Server error", {
+          "content-type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            status: "error",
+            message: "Internal Server Error",
+          }),
+        );
+        return;
+      }
+      if (!data) {
+        res.writeHead(404, "Not Found", {
+          "content-type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            status: "error",
+            message: "No Data available",
+          }),
+        );
+        return;
+      }
+
+      // ======= Todos exist =========
+      const parsedTodos = JSON.parse(data);
+      const matchedTodo = parsedTodos.find(
+        (todo) => Number(todo.id) === Number(id),
+      );
+
+      if (matchedTodo && isUpcomingDataValid) {
+        for (let key in set) {
+          matchedTodo[key] = set[key];
+        }
+        const newTodos = JSON.stringify(parsedTodos, null, 2);
+        fs.writeFile(savedLocation, newTodos, (err) => {
+          if (err) {
+            res.writeHead(500, "Internal Server Error", {
+              "content-type": "application/json",
+            });
+            res.end(
+              JSON.stringify({
+                status: "error",
+                message: `Error updating data for id: ${id}`,
+              }),
+            );
+            return;
+          }
+
+          res.writeHead(200, "OK", { "content-type": "application/json" });
+          res.end(
+            JSON.stringify({
+              status: "OK",
+              message: `Data updated for id: ${id}`,
+            }),
+          );
+        });
+        return;
+      }
+
+      if (!matchedTodo && upsert && isUpcomingDataValid) {
+        const newSet = { id: Number(id), ...set };
+        parsedTodos.push(newSet);
+        const newTodos = JSON.stringify(parsedTodos, null, 2);
+
+        fs.writeFile(savedLocation, newTodos, (err) => {
+          if (err) {
+            res.writeHead(500, "Internal server error", {
+              "content-type": "application/json",
+            });
+            res.end(
+              JSON.stringify({
+                status: "error",
+                message: "Something went wrong on the server side",
+              }),
+            );
+            return;
+          }
+          res.writeHead(200, "OK", {
+            "content-type": "application/json",
+          });
+          res.end(
+            JSON.stringify({
+              status: "ok",
+              message: "new entry added",
+            }),
+          );
+        });
+        return;
+      }
+
+      if (!matchedTodo && !upsert && isUpcomingDataValid) {
+        res.writeHead(404, "Not Found", {
+          "content-type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            status: "error",
+            message: "Todo Not Found",
+          }),
+        );
+        return;
+      }
+
+      // ======= If no cases matched =========
+      res.writeHead(500, "Internal Server Error", {
         "content-type": "application/json",
       });
       res.end(
         JSON.stringify({
           status: "error",
-          message: "set object must contain some properties",
+          message: "Something went wrong",
         }),
       );
-      return;
-    } else {
-      // Reading file
-      fs.readFile(savedLocation, { encoding: "utf8" }, (err, fileData) => {
-        // File doesn't exist or no data inside the file
-        if (err || !fileData) {
-          res.writeHead(404, "Not Found", {
-            "content-type": "application/json",
-          });
-          res.end(
-            JSON.stringify({
-              status: "error",
-              message: "Nothing to update",
-            }),
-          );
-          return;
-        }
-
-        // -------------------- If data exist -------------------
-        const parsedObj = JSON.parse(fileData);
-        const matchedTodo = parsedObj.find(
-          (obj) => Number(obj.id) === Number(id),
-        );
-
-        if (upsert && !matchedTodo && sanitized) {
-          set.id = id;
-          parsedObj.push(set);
-          const updatedTodo = JSON.stringify(parsedObj, null, 2);
-          fs.writeFile(savedLocation, updatedTodo, (err) => {
-            if (err) {
-              res.writeHead(500, "Internal Server Error", {
-                "content-type": "application/json",
-              });
-              res.end(
-                JSON.stringify({
-                  status: "error",
-                  message:
-                    "Although upsert: false, matchedTodo: false and data sanitized, something went wrong",
-                }),
-              );
-              return;
-            }
-            res.writeHead(200, "OK", { "content-type": "application/json" });
-            res.end(
-              JSON.stringify({
-                status: "OK",
-                message: `Successfully updated data for id${id}`,
-              }),
-            );
-          });
-          return;
-        }
-
-        if (!upsert && !matchedTodo && sanitized) {
-          res.writeHead(404, "Not Found", {
-            "content-type": "application/json",
-          });
-          res.end(
-            JSON.stringify({
-              status: "error",
-              message: `Id: ${id} did not matched`,
-            }),
-          );
-          return;
-        }
-
-        if (matchedTodo && sanitized) {
-          const setKeys = Object.keys(set);
-          const matchedObjKeys = Object.keys(matchedTodo);
-          const temp = [];
-
-          setKeys.forEach((sk) =>
-            matchedObjKeys.forEach((mk) => mk === sk && temp.push(sk)),
-          );
-
-          temp.forEach((tk) => (matchedTodo[tk] = set[tk]));
-
-          const updatedTodo = JSON.stringify(parsedObj, null, 2);
-          fs.writeFile(savedLocation, updatedTodo, (err) => {
-            if (err) {
-              res.writeHead(500, "Internal server error", {
-                "content-type": "application/json",
-              });
-              res.end(
-                JSON.stringify({
-                  status: "error",
-                  message: "Something went wrong",
-                }),
-              );
-              return;
-            }
-
-            res.writeHead(200, "OK", { "content-type": "application/json" });
-            res.end(
-              JSON.stringify({
-                status: "OK",
-                message: `Successfully updated data for ${id}`,
-              }),
-            );
-          });
-          return;
-        }
-
-        // Ultimate failure
-        res.writeHead(403, "Forbidden", { "content-type": "application/json" });
-        res.end(
-          JSON.stringify({
-            status: "error",
-            message: "Please enter valid data",
-          }),
-        );
-      });
-    }
+    });
   });
 };
 
@@ -152,6 +176,6 @@ function isPlainObject(val) {
   );
 }
 
-function isSanitized(set, upsert) {
+function isValidUpdateInput(set, upsert) {
   return isPlainObject(set) && typeof upsert === "boolean";
 }
