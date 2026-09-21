@@ -15,12 +15,6 @@
     "isActive": true
   },
   {
-    "id": 3,
-    "description": "Learning Backend",
-    "priority": "high",
-    "isActive": true
-  },
-  {
     "id": 4,
     "title": "Learning full stack",
     "keys": "express.js, node.js",
@@ -28,5 +22,11 @@
   },
   {
     "id": 5
+  },
+  {
+    "id": 5,
+    "title": "Second Task",
+    "description": "Leaning Frontend and Backend",
+    "priority": "medium"
   }
 ]
